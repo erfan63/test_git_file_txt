@@ -1,0 +1,123 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "name": "ClearLabs-Dashboard.ipynb",
+      "version": "0.3.2",
+      "provenance": [],
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/erfan63/test_git_file_txt/blob/master/ClearLabs_Dashboard.py\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "metadata": {
+        "id": "W8p8lMw-dOHt",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "cell_type": "code",
+      "source": [
+        "from bokeh.models import ColumnDataSource, HoverTool, Paragraph\n",
+        "from bokeh.plotting import figure\n",
+        "from bokeh.palettes import all_palettes\n",
+        "from bokeh.layouts import column\n",
+        "\n",
+        "from modules.base import BaseModule\n",
+        "from utils import run_query\n",
+        "from states import NAMES_TO_CODES\n",
+        "\n",
+        "\n",
+        "QUERY = \"\"\"\n",
+        "SELECT \n",
+        "      primer,\n",
+        "      SUM(num_reads) AS num_reads\n",
+        "      FROM ((SELECT sample_id \n",
+        "             FROM `clearlabs-science.qaptrdb.blastrecords` \n",
+        "             GROUP BY sample_id) as B\n",
+        "      JOIN `clearlabs-science.qaptrdb.primer2alleles` as P\n",
+        "      ON B.sample_id=P.sample_id\n",
+        "      AND B.sample_id='%(sample_id)s')\n",
+        "      GROUP BY primer\n",
+        "\n",
+        "\"\"\"\n",
+        "\n",
+        "TITLE = 'Number of reads per primer:'\n",
+        "\n",
+        "\n",
+        "class Module(BaseModule):\n",
+        "\n",
+        "    def __init__(self):\n",
+        "        super().__init__()\n",
+        "        self.source = None\n",
+        "        self.plot = None\n",
+        "        self.title = None\n",
+        "\n",
+        "    def fetch_data(self, sample_id):\n",
+        "      # Remove after tested\n",
+        "      sample_id = \"CL104\"\n",
+        "      my_df = pandas.io.gbq.read_gbq(\n",
+        "         query,\n",
+        "         project_id='clearlabs-science',\n",
+        "         private_key=PRIVATE_KEY,\n",
+        "         dialect='standard',\n",
+        "         reauth=True\n",
+        "      )\n",
+        "      return my_df\n",
+        "#       return run_query(\n",
+        "#           QUERY % {'sample_id': sample_id},\n",
+        "#           cache_key=('colab-%s' % sample_id))\n",
+        "\n",
+        "# [START make_plot]\n",
+        "    def make_plot(self, dataframe):\n",
+        "        self.source = ColumnDataSource(data=dataframe)\n",
+        "        hover_tool = HoverTool(tooltips=[\n",
+        "            (\"Numer of reads\", \"$num_reads\"),\n",
+        "            (\"Primer\", \"@primer\"),\n",
+        "        ])\n",
+        "        \n",
+        "        \n",
+        "        self.plot = figure(\n",
+        "            plot_width=600, plot_height=300, tools=[hover_tool],\n",
+        "            toolbar_location=None)\n",
+        "        columns = {\n",
+        "            'primer': 'Number of reads for primer',\n",
+        "        }\n",
+        "        self.plot.line(\n",
+        "            x='year', y='primer', source=self.source, line_width=3,\n",
+        "            line_alpha=0.6)\n",
+        "\n",
+        "        self.title = Paragraph(text=TITLE)\n",
+        "        return column(self.title, self.plot)\n",
+        "# [END make_plot]\n",
+        "\n",
+        "    def update_plot(self, dataframe):\n",
+        "        self.source.data.update(dataframe)\n",
+        "\n",
+        "    def busy(self):\n",
+        "        self.title.text = 'Updating...'\n",
+        "        self.plot.background_fill_color = \"#efefef\"\n",
+        "\n",
+        "    def unbusy(self):\n",
+        "        self.title.text = TITLE\n",
+        "        self.plot.background_fill_color = \"white\""
+      ],
+      "execution_count": 0,
+      "outputs": []
+    }
+  ]
+}
