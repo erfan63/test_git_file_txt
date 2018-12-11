@@ -3,7 +3,7 @@
   "nbformat_minor": 0,
   "metadata": {
     "colab": {
-      "name": "ClearLabs-Dashboard.ipynb",
+      "name": "ClearLabs-Dashboard.py",
       "version": "0.3.2",
       "provenance": [],
       "include_colab_link": true
