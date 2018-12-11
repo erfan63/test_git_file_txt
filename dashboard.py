@@ -3,9 +3,9 @@ from bokeh.plotting import figure
 from bokeh.palettes import all_palettes
 from bokeh.layouts import column
 
-from modules.base import BaseModule
-from utils import run_query
-from states import NAMES_TO_CODES
+# from Module import BaseModule
+# from utils import run_query
+# from states import NAMES_TO_CODES
 
 
 QUERY = """
@@ -24,6 +24,20 @@ SELECT
 
 TITLE = 'Number of reads per primer:'
 
+class BaseModule:
+  
+    def __init__(self):
+        self.id = self.__module__
+    def fetch_data(self, state):
+        raise NotImplementedError
+    def make_plot(self, dataframe):
+        raise NotImplementedError
+    def update_plot(self, dataframe):
+        raise NotImplementedError
+    def busy(self):
+        raise NotImplementedError
+    def unbusy(self):
+        raise NotImplementedError
 
 class Module(BaseModule):
 
@@ -32,7 +46,7 @@ class Module(BaseModule):
         self.source = None
         self.plot = None
         self.title = None
-
+        
     def fetch_data(self, sample_id):
       # Remove after tested
       sample_id = "CL104"
